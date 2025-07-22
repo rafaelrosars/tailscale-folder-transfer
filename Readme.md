@@ -76,7 +76,7 @@ To receive folders from MacOS using this script, your Windows machine must:
 ---
 
 ## Example Configuration
-
+```bash
 PUSHOVER_USER="your_pushover_user_key"
 PUSHOVER_TOKEN="your_pushover_api_token"
 DEST_USER="windows_username"
