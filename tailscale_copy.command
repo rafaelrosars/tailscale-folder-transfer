@@ -79,21 +79,31 @@ echo ""
 
 # Loop until rsync returns successfully
 while true; do
-  rsync -avh --progress --partial --inplace --exclude='.DS_Store' \
+  # Capture rsync output to extract total size
+  RSYNC_OUTPUT=$(rsync -avh --progress --partial --inplace --exclude='.DS_Store' \
     -e "ssh -i $SSH_KEY" \
-    "$SRC" "${DEST_USER}@${DEST_HOST}:${DEST_PATH}/"
+    "$SRC" "${DEST_USER}@${DEST_HOST}:${DEST_PATH}/" 2>&1)
   STATUS=$?
 
   if [ $STATUS -eq 0 ]; then
     echo ""
     echo "✅ Copy completed successfully!"
 
+    # Extract total size from rsync output
+    TOTAL_SIZE=$(echo "$RSYNC_OUTPUT" | grep "total size is" | sed 's/.*total size is \([0-9.,]*[A-Z]*\).*/\1/')
+    
+    # Prepare notification message
+    NOTIFICATION_MESSAGE="Copy completed:"$'\n'"$FOLDER_NAME"
+    if [ ! -z "$TOTAL_SIZE" ]; then
+      NOTIFICATION_MESSAGE="$NOTIFICATION_MESSAGE"$'\n'"Size: $TOTAL_SIZE"
+    fi
+
     # Send Pushover notification
     curl -s \
       -F "token=$PUSHOVER_TOKEN" \
       -F "user=$PUSHOVER_USER" \
       -F "title=✅ Copy completed" \
-      -F "message=Copy completed to:"$'\n'"$FOLDER_NAME" \
+      -F "message=$NOTIFICATION_MESSAGE" \
       https://api.pushover.net/1/messages.json
 
     break
