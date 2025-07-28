@@ -13,6 +13,7 @@
 - Ignores `.DS_Store` files
 - Sends Pushover notifications for success and error events
 - Simple, interactive usage
+- Local configuration file support for privacy
 
 ---
 
@@ -49,36 +50,44 @@ To receive folders from MacOS using this script, your Windows machine must:
 
 ---
 
+## Configuration
+
+### Option 1: Local Configuration File (Recommended)
+
+1. **Create your local configuration:**
+   ```bash
+   cp config.example.sh config.local.sh
+   ```
+
+2. **Edit `config.local.sh` with your real data:**
+   ```bash
+   PUSHOVER_USER="your_real_pushover_user_key"
+   PUSHOVER_TOKEN="your_real_pushover_api_token"
+   DEST_USER="your_windows_username"
+   DEST_IP="100.x.x.x"  # Your Windows machine's Tailscale IP
+   DEST_PATH="/c/Tailscale"  # Your destination path
+   ```
+
+
+
+### Option 2: Direct Script Editing
+
+Edit the variables directly in `tailscale_copy.command` (not recommended for public repositories).
+
+---
+
 ## Usage
 
-1. **Edit the script**:  
-   Open `tailscale_copy.command` in a text editor and set the following variables:
-   - `PUSHOVER_USER`: Your Pushover user key
-   - `PUSHOVER_TOKEN`: Your Pushover API token
-   - `DEST_USER`: The Windows username to connect as
-   - `DEST_IP`: The Windows machine’s Tailscale IP address
-   - `DEST_PATH`: The destination folder path on the Windows machine
-
-2. **Run the script**:  
+1. **Run the script**:  
    Double-click `tailscale_copy.command` or run it in Terminal:
    ```sh
    ./tailscale_copy.command
 
-3. **Drag and Drop**:
+2. **Drag and Drop**:
     Drag a folder from Finder into the Terminal window and press Enter.
 
-4. **Automatic Transfer**:
+3. **Automatic Transfer**:
     The script will attempt to copy the folder using rsync. If the connection fails, it will retry every 30 seconds.
 
-5. **Notifications**:
-    Upon completion or error, you’ll receive notifications via Pushover.
-
----
-
-## Example Configuration
-
-PUSHOVER_USER="your_pushover_user_key"
-PUSHOVER_TOKEN="your_pushover_api_token"
-DEST_USER="windows_username"
-DEST_IP="100.x.x.x"
-DEST_PATH="/c/Tailscale"
+4. **Notifications**:
+    Upon completion or error, you'll receive notifications via Pushover.

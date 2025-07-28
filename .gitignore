@@ -1,0 +1,15 @@
+# Arquivos de configuração local (contêm dados sensíveis)
+config.local.sh
+.env
+*.local
+
+# Logs
+*.log
+
+# Arquivos temporários
+*.tmp
+*.temp
+
+# Sistema
+.DS_Store
+Thumbs.db

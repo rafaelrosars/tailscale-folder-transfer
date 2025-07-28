@@ -5,7 +5,7 @@ echo "🟦 Coppy folders from MacOS to Windows"
 echo "🔹 Drag a folder to this window and press Enter to start"
 echo ""
 
-read -e -p "📁 Pasta: " SRC
+read -e -p "📁 Folder: " SRC
 
 # Remove quotes if any
 SRC=${SRC%\"}
@@ -17,13 +17,26 @@ if [ ! -d "$SRC" ]; then
   exit 1
 fi
 
-# Replace with your Pushover keys
-PUSHOVER_USER="xxx"
-PUSHOVER_TOKEN="xxx"
+# Load local config if exists, otherwise use default values
+# Carrega configuração local se existir, senão usa valores padrão
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+CONFIG_FILE="$SCRIPT_DIR/config.local.sh"
 
-DEST_USER="xxx" # Windows user
-DEST_IP="xxx.xxx.xxx.xxx" # Windows IP from tailscale
-DEST_PATH="xxx" # Windows path
+if [ -f "$CONFIG_FILE" ]; then
+    source "$CONFIG_FILE"
+    echo "✅ Configuração local carregada"
+else
+    echo "⚠️ Arquivo config.local.sh não encontrado em: $SCRIPT_DIR"
+    echo "📝 Crie o arquivo config.local.sh com suas configurações"
+    echo "📋 Use o arquivo config.example.sh como modelo"
+    
+    # Valores padrão (exemplo)
+    PUSHOVER_USER="your_pushover_user_key"
+    PUSHOVER_TOKEN="your_pushover_api_token"
+    DEST_USER="windows_username"
+    DEST_IP="100.x.x.x"
+    DEST_PATH="/c/Tailscale"
+fi
 PASTA_NOME=$(basename "$SRC") # Folder name
 
 echo ""
