@@ -13,7 +13,7 @@
 - Ignores `.DS_Store` files
 - Sends Pushover notifications for success and error events
 - Simple, interactive usage
-- Local configuration file support for privacy
+- **NEW**: Local configuration file support for privacy
 
 ---
 
@@ -68,7 +68,7 @@ To receive folders from MacOS using this script, your Windows machine must:
    DEST_PATH="/c/Tailscale"  # Your destination path
    ```
 
-
+3. **The `config.local.sh` file is ignored by Git** (see `.gitignore`), so your personal data won't be shared publicly.
 
 ### Option 2: Direct Script Editing
 
@@ -82,6 +82,7 @@ Edit the variables directly in `tailscale_copy.command` (not recommended for pub
    Double-click `tailscale_copy.command` or run it in Terminal:
    ```sh
    ./tailscale_copy.command
+   ```
 
 2. **Drag and Drop**:
     Drag a folder from Finder into the Terminal window and press Enter.
@@ -91,3 +92,24 @@ Edit the variables directly in `tailscale_copy.command` (not recommended for pub
 
 4. **Notifications**:
     Upon completion or error, you'll receive notifications via Pushover.
+
+---
+
+## Example Configuration
+
+```bash
+PUSHOVER_USER="your_pushover_user_key"
+PUSHOVER_TOKEN="your_pushover_api_token"
+DEST_USER="windows_username"
+DEST_IP="100.x.x.x"
+DEST_PATH="/c/Tailscale"
+```
+
+---
+
+## Privacy & Security
+
+- The `config.local.sh` file contains your personal data and is **NOT** committed to Git
+- Your real API keys and IP addresses remain private
+- The public repository only contains example/template configurations
+- Any improvements you make to the script locally can be safely pushed to the public repository
