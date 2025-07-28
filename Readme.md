@@ -2,7 +2,7 @@
 
 ## Overview
 
-**tailscale_copy.command** is a shell script designed to easily copy folders from MacOS to a Windows machine over your Tailscale network. It automatically reconnects and retries if the transfer is interrupted, and sends notifications using [Pushover](https://pushover.net/) when the process completes or encounters an error.
+A shell script designed to easily copy folders from MacOS to a Windows machine over your Tailscale network. It automatically reconnects and retries if the transfer is interrupted, and sends notifications using [Pushover](https://pushover.net/) when the process completes or encounters an error.
 
 ---
 
@@ -13,7 +13,7 @@
 - Ignores `.DS_Store` files
 - Sends Pushover notifications for success and error events
 - Simple, interactive usage
-- **NEW**: Local configuration file support for privacy
+- SSH key-based authentication (no passwords)
 
 ---
 
@@ -21,8 +21,8 @@
 
 - **Tailscale** installed and configured on both MacOS and Windows machines
 - **rsync** installed on MacOS
-- **curl** installed (usually available by default on MacOS)
 - [Pushover account](https://pushover.net/) and API credentials
+- **SSH key pair** for authentication
 
 ---
 
@@ -39,7 +39,7 @@ To receive folders from MacOS using this script, your Windows machine must:
        Start-Service sshd
        Set-Service -Name sshd -StartupType 'Automatic'
        ```
-     - Make sure your Windows firewall allows inbound connections to port **22**.
+     
 
 2. **Have your Windows user account set up for SSH access**
    - The username should match the `DEST_USER` in the script.
@@ -50,29 +50,80 @@ To receive folders from MacOS using this script, your Windows machine must:
 
 ---
 
+## SSH Key Setup
+
+### 1. Generate SSH Key Pair on MacOS
+
+```bash
+# Generate a new SSH key pair
+ssh-keygen -t rsa -b 4096 -f ~/.ssh/winsshtailcopy -C "tailscale_copy_script"
+
+# This creates:
+# - ~/.ssh/winsshtailcopy (private key)
+# - ~/.ssh/winsshtailcopy.pub (public key)
+```
+
+### 2. Copy Public Key to Windows
+
+**Option A: Using ssh-copy-id (if available)**
+```bash
+ssh-copy-id -i ~/.ssh/winsshtailcopy.pub office@100.98.188.37
+```
+
+**Option B: Manual copy**
+```bash
+# Copy the public key content
+cat ~/.ssh/winsshtailcopy.pub
+
+# Then manually add it to Windows:
+# 1. Open PowerShell as Administrator
+# 2. Create the .ssh directory if it doesn't exist:
+mkdir -p C:\Users\username\.ssh
+
+# 3. Add the public key to authorized_keys:
+echo "YOUR_PUBLIC_KEY_CONTENT_HERE" >> C:\Users\username\.ssh\authorized_keys
+```
+
+### 3. Test SSH Connection
+
+```bash
+# Test the connection (should work without password)
+ssh -i ~/.ssh/winsshtailcopy username@100.xxx.xxxx.xxx
+```
+
+---
+
 ## Configuration
 
-### Option 1: Local Configuration File (Recommended)
+### First Run Setup
 
-1. **Create your local configuration:**
+1. **Run the script for the first time:**
    ```bash
-   cp config.example.sh config.local.sh
+   ./tailscale_copy.command
    ```
 
-2. **Edit `config.local.sh` with your real data:**
+2. **The script will automatically create `config.local.sh`** with default settings.
+
+3. **Edit `config.local.sh` with your real data:**
    ```bash
+   # Pushover (notifications)
    PUSHOVER_USER="your_real_pushover_user_key"
    PUSHOVER_TOKEN="your_real_pushover_api_token"
+   
+   # Destination (Windows machine via SSH)
    DEST_USER="your_windows_username"
-   DEST_IP="100.x.x.x"  # Your Windows machine's Tailscale IP
-   DEST_PATH="/c/Tailscale"  # Your destination path
+   DEST_HOST="100.x.x.x"  # Your Windows machine's Tailscale IP
+   DEST_PATH="/c/Tailscale"  # Your destination path on Windows
+   SSH_KEY="~/.ssh/winsshtailcopy"  # Path to your SSH key
    ```
 
-3. **The `config.local.sh` file is ignored by Git** (see `.gitignore`), so your personal data won't be shared publicly.
+### Configuration Options
 
-### Option 2: Direct Script Editing
-
-Edit the variables directly in `tailscale_copy.command` (not recommended for public repositories).
+- **PUSHOVER_USER/PUSHOVER_TOKEN**: For notifications (optional - leave empty if not using)
+- **DEST_USER**: Your Windows username
+- **DEST_HOST**: Your Windows machine's Tailscale IP address
+- **DEST_PATH**: Destination path on Windows (e.g., `/c/Tailscale`)
+- **SSH_KEY**: Path to your SSH private key
 
 ---
 
@@ -88,28 +139,35 @@ Edit the variables directly in `tailscale_copy.command` (not recommended for pub
     Drag a folder from Finder into the Terminal window and press Enter.
 
 3. **Automatic Transfer**:
-    The script will attempt to copy the folder using rsync. If the connection fails, it will retry every 30 seconds.
+    The script will attempt to copy the folder using rsync over SSH. If the connection fails, it will retry every 30 seconds.
 
 4. **Notifications**:
     Upon completion or error, you'll receive notifications via Pushover.
 
 ---
 
-## Example Configuration
+## Troubleshooting
 
-```bash
-PUSHOVER_USER="your_pushover_user_key"
-PUSHOVER_TOKEN="your_pushover_api_token"
-DEST_USER="windows_username"
-DEST_IP="100.x.x.x"
-DEST_PATH="/c/Tailscale"
-```
+### SSH Connection Issues
 
----
+1. **Verify SSH server is running on Windows:**
+   ```powershell
+   Get-Service sshd
+   ```
 
-## Privacy & Security
+2. **Check SSH key permissions:**
+   ```bash
+   chmod 600 ~/.ssh/winsshtailcopy
+   chmod 644 ~/.ssh/winsshtailcopy.pub
+   ```
 
-- The `config.local.sh` file contains your personal data and is **NOT** committed to Git
-- Your real API keys and IP addresses remain private
-- The public repository only contains example/template configurations
-- Any improvements you make to the script locally can be safely pushed to the public repository
+3. **Test SSH connection manually:**
+   ```bash
+   ssh -i ~/.ssh/winsshtailcopy username@100.xxx.xxx.xxx
+   ```
+
+### Permission Issues
+
+1. **Ensure the destination folder exists and is writable**
+2. **Check Windows user permissions**
+3. **Verify SSH key is in the correct user's authorized_keys**
