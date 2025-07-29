@@ -79,10 +79,12 @@ echo ""
 
 # Loop until rsync returns successfully
 while true; do
-  # Capture rsync output to extract total size
+  echo "🔄 Starting rsync transfer..."
+  
+  # Run rsync with progress visible in real-time, but also capture output
   RSYNC_OUTPUT=$(rsync -avh --progress --partial --inplace --exclude='.DS_Store' \
     -e "ssh -i $SSH_KEY" \
-    "$SRC" "${DEST_USER}@${DEST_HOST}:${DEST_PATH}/" 2>&1)
+    "$SRC" "${DEST_USER}@${DEST_HOST}:${DEST_PATH}/" 2>&1 | tee /dev/tty)
   STATUS=$?
 
   if [ $STATUS -eq 0 ]; then
